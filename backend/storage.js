@@ -183,12 +183,13 @@ export function resetStory(storyId) {
 
 export function exportAllStories() {
   const data = readData();
-  const stories = Object.values(data.stories);
+  Object.values(data.stories).forEach(updateStoryStatus);
+  writeData(data);
   const exportTime = Date.now();
   return {
     exportTime,
-    totalCount: stories.length,
-    stories: stories.map(s => formatStoryDetail(s))
+    totalCount: Object.keys(data.stories).length,
+    stories: data.stories
   };
 }
 

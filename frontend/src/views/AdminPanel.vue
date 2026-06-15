@@ -23,7 +23,7 @@
           </div>
           <div class="export-info-item">
             <span class="export-label">⏰ 导出时间：</span>
-            <span class="export-value">{{ formatTime(exportInfo.exportTime) }}</span>
+            <span class="export-value">{{ formatExactTime(exportInfo.exportTime) }}</span>
           </div>
         </div>
       </header>
@@ -163,7 +163,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api.js'
-import { formatTime } from '../utils.js'
+import { formatTime, formatExactTime } from '../utils.js'
 
 const router = useRouter()
 const stories = ref([])
