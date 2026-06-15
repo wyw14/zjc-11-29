@@ -7,9 +7,24 @@
             <h1>🛠️ 故事管理中心</h1>
             <p class="admin-subtitle">管理所有社区微小说，支持重置故事内容</p>
           </div>
-          <button class="btn-secondary" @click="loadStories">
-            🔄 刷新列表
-          </button>
+          <div class="header-actions">
+            <button class="btn-primary" @click="doExport" :disabled="exporting">
+              {{ exporting ? '📦 导出中...' : '📦 数据备份' }}
+            </button>
+            <button class="btn-secondary" @click="loadStories">
+              🔄 刷新列表
+            </button>
+          </div>
+        </div>
+        <div v-if="exportInfo.show" class="export-info">
+          <div class="export-info-item">
+            <span class="export-label">📊 故事总数：</span>
+            <span class="export-value">{{ exportInfo.totalCount }}</span>
+          </div>
+          <div class="export-info-item">
+            <span class="export-label">⏰ 导出时间：</span>
+            <span class="export-value">{{ formatTime(exportInfo.exportTime) }}</span>
+          </div>
         </div>
       </header>
 
@@ -157,12 +172,46 @@ const resetting = ref(null)
 const resetError = ref('')
 const confirmVisible = ref(false)
 const targetStory = ref(null)
+const exporting = ref(false)
+const exportInfo = ref({ show: false, totalCount: 0, exportTime: 0 })
 
 const toast = ref({ show: false, message: '', type: 'success' })
 
 function showToast(message, type = 'success') {
   toast.value = { show: true, message, type }
   setTimeout(() => (toast.value.show = false), 2800)
+}
+
+function downloadJSON(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
+async function doExport() {
+  exporting.value = true
+  try {
+    const data = await api.exportStories()
+    const dateStr = new Date(data.exportTime).toISOString().slice(0, 10)
+    const filename = `stories-backup-${dateStr}.json`
+    downloadJSON(data, filename)
+    exportInfo.value = {
+      show: true,
+      totalCount: data.totalCount,
+      exportTime: data.exportTime
+    }
+    showToast(`已成功导出 ${data.totalCount} 篇故事数据`, 'success')
+  } catch (e) {
+    showToast('导出失败：' + e.message, 'error')
+  } finally {
+    exporting.value = false
+  }
 }
 
 async function loadStories() {
@@ -217,6 +266,36 @@ onMounted(loadStories)
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.export-info {
+  display: flex;
+  gap: 24px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.export-info-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.export-label {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.export-value {
+  font-weight: 600;
+  color: var(--primary);
+  font-size: 14px;
 }
 
 .admin-header h1 {
@@ -490,6 +569,16 @@ onMounted(loadStories)
   .admin-header-inner {
     flex-direction: column;
     align-items: flex-start;
+  }
+  .header-actions {
+    width: 100%;
+  }
+  .header-actions button {
+    flex: 1;
+  }
+  .export-info {
+    flex-direction: column;
+    gap: 8px;
   }
   .confirm-info {
     padding: 12px 14px;

@@ -6,6 +6,7 @@ import {
   getStoryById,
   addEntry,
   resetStory,
+  exportAllStories,
   MAX_PARTICIPANTS,
   MAX_CHARS_PER_STORY
 } from './storage.js';
@@ -108,6 +109,16 @@ app.post('/api/admin/stories/:id/reset', (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: '重置故事失败' });
+  }
+});
+
+app.get('/api/admin/export', (_req, res) => {
+  try {
+    const data = exportAllStories();
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: '导出数据失败' });
   }
 });
 

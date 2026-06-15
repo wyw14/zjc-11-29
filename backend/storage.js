@@ -181,4 +181,15 @@ export function resetStory(storyId) {
   return { success: true, story: formatStoryDetail(story) };
 }
 
+export function exportAllStories() {
+  const data = readData();
+  const stories = Object.values(data.stories);
+  const exportTime = Date.now();
+  return {
+    exportTime,
+    totalCount: stories.length,
+    stories: stories.map(s => formatStoryDetail(s))
+  };
+}
+
 export { MAX_PARTICIPANTS, MAX_CHARS_PER_STORY };
